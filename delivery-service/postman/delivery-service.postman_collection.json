@@ -7,11 +7,11 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8083"
+      "value": "{{deliveryBaseUrl}}"
     },
     {
       "key": "deliveryId",
-      "value": "1"
+      "value": "{{deliveryId}}"
     }
   ],
   "item": [
