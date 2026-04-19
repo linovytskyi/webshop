@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/deliveries")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Deliveries", description = "Operations for managing deliveries")
 public class DeliveryController {
 
@@ -36,6 +38,7 @@ public class DeliveryController {
     @ApiResponse(responseCode = "200", description = "Deliveries returned successfully",
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = Delivery.class))))
     public ResponseEntity<List<Delivery>> getAllDeliveries() {
+        log.info("Received request to get all deliveries");
         return ResponseEntity.ok(deliveryService.findAll());
     }
 
@@ -48,6 +51,7 @@ public class DeliveryController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Delivery> getDeliveryById(@PathVariable Long id) {
+        log.info("Received request to get delivery by id={}", id);
         return ResponseEntity.ok(deliveryService.findById(id));
     }
 
@@ -56,6 +60,7 @@ public class DeliveryController {
     @ApiResponse(responseCode = "201", description = "Delivery created",
             content = @Content(schema = @Schema(implementation = Delivery.class)))
     public ResponseEntity<Delivery> createDelivery(@RequestBody Delivery delivery) {
+        log.info("Received request to create delivery for orderId={}", delivery.getOrderId());
         return ResponseEntity.status(HttpStatus.CREATED).body(deliveryService.create(delivery));
     }
 
@@ -68,6 +73,7 @@ public class DeliveryController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Delivery> updateDelivery(@PathVariable Long id, @RequestBody Delivery delivery) {
+        log.info("Received request to update delivery id={}", id);
         return ResponseEntity.ok(deliveryService.update(id, delivery));
     }
 
@@ -79,6 +85,7 @@ public class DeliveryController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Void> deleteDelivery(@PathVariable Long id) {
+        log.info("Received request to delete delivery id={}", id);
         deliveryService.delete(id);
         return ResponseEntity.noContent().build();
     }
