@@ -104,6 +104,34 @@
       }
     },
     {
+      "name": "Request Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"paymentMethod\": \"CARD\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/orders/{{orderId}}/payment",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders",
+            "{{orderId}}",
+            "payment"
+          ]
+        }
+      }
+    },
+    {
       "name": "Delete Order",
       "request": {
         "method": "DELETE",
