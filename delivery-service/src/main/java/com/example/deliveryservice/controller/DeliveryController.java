@@ -3,6 +3,7 @@ package com.example.deliveryservice.controller;
 import com.example.deliveryservice.controller.dto.ErrorResponse;
 import com.example.deliveryservice.model.Delivery;
 import com.example.deliveryservice.service.DeliveryService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,6 +35,7 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @GetMapping
+    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Get all deliveries", description = "Returns the full list of deliveries")
     @ApiResponse(responseCode = "200", description = "Deliveries returned successfully",
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = Delivery.class))))
@@ -43,6 +45,7 @@ public class DeliveryController {
     }
 
     @GetMapping("/{id}")
+    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Get delivery by id", description = "Returns a delivery by its identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Delivery found",
@@ -56,6 +59,7 @@ public class DeliveryController {
     }
 
     @PostMapping
+    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Create delivery", description = "Creates a new delivery record")
     @ApiResponse(responseCode = "201", description = "Delivery created",
             content = @Content(schema = @Schema(implementation = Delivery.class)))
@@ -65,6 +69,7 @@ public class DeliveryController {
     }
 
     @PutMapping("/{id}")
+    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Update delivery", description = "Updates an existing delivery by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Delivery updated",
@@ -78,6 +83,7 @@ public class DeliveryController {
     }
 
     @DeleteMapping("/{id}")
+    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Delete delivery", description = "Deletes a delivery by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Delivery deleted"),

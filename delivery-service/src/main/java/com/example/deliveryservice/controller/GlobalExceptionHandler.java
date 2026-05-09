@@ -2,6 +2,7 @@ package com.example.deliveryservice.controller;
 
 import com.example.deliveryservice.controller.dto.ErrorResponse;
 import com.example.deliveryservice.service.ResourceNotFoundException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,21 @@ public class GlobalExceptionHandler {
                         .timestamp(LocalDateTime.now().toString())
                         .status(HttpStatus.NOT_FOUND.value())
                         .error(exception.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ErrorResponse> handleOpenCircuit(CallNotPermittedException exception) {
+        log.warn("Circuit breaker is open: {}", exception.getMessage());
+        return serviceUnavailable("Circuit breaker is open. Try again later.");
+    }
+
+    private ResponseEntity<ErrorResponse> serviceUnavailable(String message) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now().toString())
+                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                        .error(message)
                         .build());
     }
 }
