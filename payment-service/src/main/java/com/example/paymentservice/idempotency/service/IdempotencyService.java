@@ -27,6 +27,11 @@ public class IdempotencyService {
 
     @Transactional
     public IdempotencyReservationResult reserve(String key, String httpMethod, String requestPath, String requestHash) {
+        Optional<IdempotencyRecord> existingRecord = idempotencyRecordRepository.findById(key);
+        if (existingRecord.isPresent()) {
+            return new IdempotencyReservationResult(existingRecord.get(), false);
+        }
+
         IdempotencyRecord record = IdempotencyRecord.builder()
                 .idempotencyKey(key)
                 .httpMethod(httpMethod)
@@ -38,9 +43,9 @@ public class IdempotencyService {
         try {
             return new IdempotencyReservationResult(idempotencyRecordRepository.saveAndFlush(record), true);
         } catch (DataIntegrityViolationException exception) {
-            IdempotencyRecord existingRecord = idempotencyRecordRepository.findById(key)
+            IdempotencyRecord concurrentlyCreatedRecord = idempotencyRecordRepository.findById(key)
                     .orElseThrow(() -> exception);
-            return new IdempotencyReservationResult(existingRecord, false);
+            return new IdempotencyReservationResult(concurrentlyCreatedRecord, false);
         }
     }
 
