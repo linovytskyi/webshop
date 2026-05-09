@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.controller.dto.ErrorResponse;
 import com.example.orderservice.service.ResourceNotFoundException;
+import io.github.resilience4j.bulkhead.BulkheadFullException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import java.time.LocalDateTime;
@@ -41,6 +42,12 @@ public class GlobalExceptionHandler {
                         .status(HttpStatus.TOO_MANY_REQUESTS.value())
                         .error("Rate limit exceeded. Try again later.")
                         .build());
+    }
+
+    @ExceptionHandler(BulkheadFullException.class)
+    public ResponseEntity<ErrorResponse> handleBulkheadFull(BulkheadFullException exception) {
+        log.warn("Bulkhead is full: {}", exception.getMessage());
+        return serviceUnavailable("Payment resource pool is full. Try again later.");
     }
 
     private ResponseEntity<ErrorResponse> serviceUnavailable(String message) {
