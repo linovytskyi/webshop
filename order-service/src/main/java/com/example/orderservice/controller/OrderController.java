@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Orders", description = "Operations for managing orders and requesting payment")
 public class OrderController {
 
@@ -38,6 +40,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Orders returned successfully",
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = Order.class))))
     public ResponseEntity<List<Order>> getAllOrders() {
+        log.info("Received request to get all orders");
         return ResponseEntity.ok(orderService.findAll());
     }
 
@@ -50,6 +53,7 @@ public class OrderController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        log.info("Received request to get order by id={}", id);
         return ResponseEntity.ok(orderService.findById(id));
     }
 
@@ -58,6 +62,7 @@ public class OrderController {
     @ApiResponse(responseCode = "201", description = "Order created",
             content = @Content(schema = @Schema(implementation = Order.class)))
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        log.info("Received request to create order for customer='{}'", order.getCustomerName());
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(order));
     }
 
@@ -70,6 +75,7 @@ public class OrderController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        log.info("Received request to update order id={}", id);
         return ResponseEntity.ok(orderService.update(id, order));
     }
 
@@ -86,6 +92,7 @@ public class OrderController {
             @PathVariable Long id,
             @RequestBody OrderPaymentRequest request
     ) {
+        log.info("Received payment request for order id={} using method={}", id, request.getPaymentMethod());
         return ResponseEntity.ok(orderService.requestPayment(id, request.getPaymentMethod()));
     }
 
@@ -97,6 +104,7 @@ public class OrderController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        log.info("Received request to delete order id={}", id);
         orderService.delete(id);
         return ResponseEntity.noContent().build();
     }
