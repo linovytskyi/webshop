@@ -1,0 +1,7 @@
+{
+  "id": 101,
+  "orderId": {{jsonPath request.body '$.orderId'}},
+  "amount": 45000.00,
+  "paymentMethod": "CARD",
+  "status": "PENDING"
+}
