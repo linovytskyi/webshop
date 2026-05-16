@@ -5,6 +5,7 @@ import com.example.paymentservice.idempotency.IdempotencyConstants;
 import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.service.PaymentService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -39,6 +40,7 @@ public class PaymentController {
 
     @GetMapping
     @CircuitBreaker(name = "serverController")
+    @RateLimiter(name = "serverController")
     @Operation(summary = "Get all payments", description = "Returns the full list of payments")
     @ApiResponse(responseCode = "200", description = "Payments returned successfully",
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = Payment.class))))
@@ -49,6 +51,7 @@ public class PaymentController {
 
     @GetMapping("/{id}")
     @CircuitBreaker(name = "serverController")
+    @RateLimiter(name = "serverController")
     @Operation(summary = "Get payment by id", description = "Returns a payment by its identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Payment found",
@@ -63,6 +66,7 @@ public class PaymentController {
 
     @PostMapping
     @CircuitBreaker(name = "serverController")
+    @RateLimiter(name = "serverController")
     @Operation(summary = "Create payment",
             description = "Creates a new payment record. Requires the Idempotency-Key header to prevent duplicate charges. "
                     + "If the same key is reused after completion, the cached response is returned. "
@@ -93,6 +97,7 @@ public class PaymentController {
 
     @PutMapping("/{id}")
     @CircuitBreaker(name = "serverController")
+    @RateLimiter(name = "serverController")
     @Operation(summary = "Update payment", description = "Updates an existing payment by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Payment updated",
@@ -107,6 +112,7 @@ public class PaymentController {
 
     @DeleteMapping("/{id}")
     @CircuitBreaker(name = "serverController")
+    @RateLimiter(name = "serverController")
     @Operation(summary = "Delete payment", description = "Deletes a payment by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Payment deleted"),
