@@ -1,6 +1,6 @@
 package com.example.orderservice.service;
 
-import com.example.orderservice.integration.payment.client.PaymentServiceClient;
+import com.example.orderservice.integration.payment.PaymentGateway;
 import com.example.orderservice.integration.payment.dto.CreatePaymentRequest;
 import com.example.orderservice.integration.payment.dto.CreatePaymentResponse;
 import com.example.orderservice.model.Order;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final PaymentServiceClient paymentServiceClient;
+    private final PaymentGateway paymentGateway;
 
     public List<Order> findAll() {
         log.info("Fetching all orders");
@@ -74,7 +74,7 @@ public class OrderService {
                 .build();
 
         log.debug("Sending payment request for order id={} with idempotencyKey={}", order.getId(), idempotencyKey);
-        CreatePaymentResponse paymentResponse = paymentServiceClient.createPayment(idempotencyKey, request);
+        CreatePaymentResponse paymentResponse = paymentGateway.createPayment(idempotencyKey, request);
 
         if (paymentResponse.getStatus() == PaymentStatus.COMPLETED) {
             order.setStatus(OrderStatus.PAID);
