@@ -2,10 +2,8 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.controller.dto.ErrorResponse;
 import com.example.orderservice.controller.dto.OrderPaymentRequest;
-import com.example.orderservice.integration.payment.dto.CreatePaymentResponse;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.service.OrderService;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +35,6 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Get all orders", description = "Returns the full list of orders from the database")
     @ApiResponse(responseCode = "200", description = "Orders returned successfully",
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = Order.class))))
@@ -47,7 +44,6 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Get order by id", description = "Returns a single order by its identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Order found",
@@ -61,7 +57,6 @@ public class OrderController {
     }
 
     @PostMapping
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Create order", description = "Creates a new order record")
     @ApiResponse(responseCode = "201", description = "Order created",
             content = @Content(schema = @Schema(implementation = Order.class)))
@@ -71,7 +66,6 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Update order", description = "Updates an existing order by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Order updated",
@@ -85,25 +79,23 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/payment")
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Request payment for order",
-            description = "Sends a REST request from order-service to payment-service through OpenFeign")
+            description = "Publishes a payment request to RabbitMQ asynchronously. Returns 202 Accepted with order in PAYMENT_REQUESTED status.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Payment request sent successfully",
-                    content = @Content(schema = @Schema(implementation = CreatePaymentResponse.class))),
+            @ApiResponse(responseCode = "202", description = "Payment request accepted",
+                    content = @Content(schema = @Schema(implementation = Order.class))),
             @ApiResponse(responseCode = "404", description = "Order not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<CreatePaymentResponse> requestPayment(
+    public ResponseEntity<Order> requestPayment(
             @PathVariable Long id,
             @RequestBody OrderPaymentRequest request
     ) {
         log.info("Received payment request for order id={} using method={}", id, request.getPaymentMethod());
-        return ResponseEntity.ok(orderService.requestPayment(id, request.getPaymentMethod()));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(orderService.requestPayment(id, request.getPaymentMethod()));
     }
 
     @DeleteMapping("/{id}")
-    @CircuitBreaker(name = "serverController")
     @Operation(summary = "Delete order", description = "Deletes an order by identifier")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Order deleted"),

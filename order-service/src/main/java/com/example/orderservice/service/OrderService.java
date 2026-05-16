@@ -1,11 +1,9 @@
 package com.example.orderservice.service;
 
-import com.example.orderservice.integration.payment.PaymentGateway;
-import com.example.orderservice.integration.payment.dto.CreatePaymentRequest;
-import com.example.orderservice.integration.payment.dto.CreatePaymentResponse;
+import com.example.orderservice.messaging.dto.PaymentRequestMessage;
+import com.example.orderservice.messaging.publisher.PaymentRequestPublisher;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.model.OrderStatus;
-import com.example.orderservice.model.payment.PaymentStatus;
 import com.example.orderservice.repository.OrderRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final PaymentGateway paymentGateway;
+    private final PaymentRequestPublisher paymentRequestPublisher;
 
     public List<Order> findAll() {
         log.info("Fetching all orders");
@@ -62,33 +60,37 @@ public class OrderService {
         log.info("Order id={} deleted", id);
     }
 
-    public CreatePaymentResponse requestPayment(Long orderId, String paymentMethod) {
+    public Order requestPayment(Long orderId, String paymentMethod) {
         log.info("Requesting payment for order id={} using method={}", orderId, paymentMethod);
         Order order = findById(orderId);
-        String idempotencyKey = buildPaymentIdempotencyKey(order.getId());
 
-        CreatePaymentRequest request = CreatePaymentRequest.builder()
+        if (order.getStatus() == OrderStatus.PAYMENT_REQUESTED || order.getStatus() == OrderStatus.PAID) {
+            log.warn("Payment already in progress or completed for order id={}, status={}", orderId, order.getStatus());
+            return order;
+        }
+
+        PaymentRequestMessage message = PaymentRequestMessage.builder()
+                .messageId("payment-order-" + orderId)
                 .orderId(order.getId())
                 .amount(order.getTotalPrice())
                 .paymentMethod(paymentMethod)
                 .build();
 
-        log.debug("Sending payment request for order id={} with idempotencyKey={}", order.getId(), idempotencyKey);
-        CreatePaymentResponse paymentResponse = paymentGateway.createPayment(idempotencyKey, request);
-
-        if (paymentResponse.getStatus() == PaymentStatus.COMPLETED) {
-            order.setStatus(OrderStatus.PAID);
-        } else {
-            order.setStatus(OrderStatus.PAYMENT_REQUESTED);
-        }
+        order.setStatus(OrderStatus.PAYMENT_REQUESTED);
         orderRepository.save(order);
-        log.info("Payment requested for order id={}, paymentStatus={}, orderStatus={}",
-                orderId, paymentResponse.getStatus(), order.getStatus());
 
-        return paymentResponse;
+        paymentRequestPublisher.publish(message);
+        log.info("Payment request published for order id={}, messageId={}", orderId, message.getMessageId());
+
+        return order;
     }
 
-    private String buildPaymentIdempotencyKey(Long orderId) {
-        return "payment-order-" + orderId;
+    public void updatePaymentStatus(Long orderId, String paymentStatus) {
+        log.info("Updating payment status for order id={}, paymentStatus={}", orderId, paymentStatus);
+        Order order = findById(orderId);
+        OrderStatus newStatus = "COMPLETED".equals(paymentStatus) ? OrderStatus.PAID : OrderStatus.CANCELLED;
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+        log.info("Order id={} status updated to {}", orderId, newStatus);
     }
 }

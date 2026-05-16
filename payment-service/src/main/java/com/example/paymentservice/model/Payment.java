@@ -1,5 +1,6 @@
 package com.example.paymentservice.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,6 +28,10 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(description = "Payment identifier", example = "10")
     private Long id;
+
+    @Column(unique = true)
+    @Schema(description = "Idempotency key from the message that created this payment")
+    private String messageId;
 
     @Schema(description = "Related order identifier", example = "1")
     private Long orderId;
