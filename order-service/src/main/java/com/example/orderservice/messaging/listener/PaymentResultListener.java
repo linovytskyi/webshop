@@ -18,6 +18,6 @@ public class PaymentResultListener {
     @RabbitListener(queues = RabbitMQConfig.ORDER_PAYMENT_RESULTS_QUEUE)
     public void handlePaymentResult(PaymentResultMessage message) {
         log.info("Received payment result for orderId={}, status={}", message.getOrderId(), message.getStatus());
-        orderService.updatePaymentStatus(message.getOrderId(), message.getStatus());
+        orderService.updatePaymentStatus(message.getOrderId(), message.getStatus(), message.getPaymentMethod());
     }
 }

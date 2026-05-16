@@ -1,5 +1,6 @@
-package com.example.paymentservice.messaging.dto;
+package com.example.orderservice.kafka.dto;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,10 +10,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentResultMessage {
-    private String messageId;
+public class OrderPaidEvent {
     private Long orderId;
-    private Long paymentId;
-    private String status;
+    private String customerName;
+    private String productName;
+    private BigDecimal totalPrice;
     private String paymentMethod;
 }

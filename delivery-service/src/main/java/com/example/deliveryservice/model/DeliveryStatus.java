@@ -1,7 +1,7 @@
 package com.example.deliveryservice.model;
 
 public enum DeliveryStatus {
-    NEW,
+    CREATED,
     IN_PROGRESS,
     DELIVERED,
     CANCELLED

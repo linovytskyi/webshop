@@ -14,4 +14,5 @@ public class PaymentResultMessage {
     private Long orderId;
     private Long paymentId;
     private String status;
+    private String paymentMethod;
 }
