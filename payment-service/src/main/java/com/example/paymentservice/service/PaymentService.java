@@ -96,6 +96,7 @@ public class PaymentService {
                 .orderId(payment.getOrderId())
                 .paymentId(payment.getId())
                 .status(payment.getStatus().name())
+                .paymentMethod(payment.getPaymentMethod())
                 .build();
         paymentResultPublisher.publish(result);
         log.info("Payment result published for orderId={}, status={}", payment.getOrderId(), payment.getStatus());

@@ -1,4 +1,4 @@
-package com.example.paymentservice.messaging.dto;
+package com.example.orderservice.kafka.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentResultMessage {
-    private String messageId;
+public class DeliveryCreatedEvent {
+    private Long deliveryId;
     private Long orderId;
-    private Long paymentId;
     private String status;
-    private String paymentMethod;
 }

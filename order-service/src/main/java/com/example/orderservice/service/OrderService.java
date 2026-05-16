@@ -1,5 +1,7 @@
 package com.example.orderservice.service;
 
+import com.example.orderservice.kafka.dto.OrderPaidEvent;
+import com.example.orderservice.kafka.publisher.OrderPaidPublisher;
 import com.example.orderservice.messaging.dto.PaymentRequestMessage;
 import com.example.orderservice.messaging.publisher.PaymentRequestPublisher;
 import com.example.orderservice.model.Order;
@@ -17,6 +19,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final PaymentRequestPublisher paymentRequestPublisher;
+    private final OrderPaidPublisher orderPaidPublisher;
 
     public List<Order> findAll() {
         log.info("Fetching all orders");
@@ -85,12 +88,31 @@ public class OrderService {
         return order;
     }
 
-    public void updatePaymentStatus(Long orderId, String paymentStatus) {
+    public void updatePaymentStatus(Long orderId, String paymentStatus, String paymentMethod) {
         log.info("Updating payment status for order id={}, paymentStatus={}", orderId, paymentStatus);
         Order order = findById(orderId);
         OrderStatus newStatus = "COMPLETED".equals(paymentStatus) ? OrderStatus.PAID : OrderStatus.CANCELLED;
         order.setStatus(newStatus);
         orderRepository.save(order);
         log.info("Order id={} status updated to {}", orderId, newStatus);
+
+        if (newStatus == OrderStatus.PAID) {
+            OrderPaidEvent event = OrderPaidEvent.builder()
+                    .orderId(order.getId())
+                    .customerName(order.getCustomerName())
+                    .productName(order.getProductName())
+                    .totalPrice(order.getTotalPrice())
+                    .paymentMethod(paymentMethod)
+                    .build();
+            orderPaidPublisher.publish(event);
+        }
+    }
+
+    public void updateDeliveryStatus(Long orderId) {
+        log.info("Updating delivery status for order id={}", orderId);
+        Order order = findById(orderId);
+        order.setStatus(OrderStatus.SHIPPED);
+        orderRepository.save(order);
+        log.info("Order id={} status updated to SHIPPED", orderId);
     }
 }
