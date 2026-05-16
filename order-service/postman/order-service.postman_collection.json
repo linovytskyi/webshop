@@ -22,13 +22,8 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders"]
         }
       }
     },
@@ -39,19 +34,28 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders/{{orderId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders",
-            "{{orderId}}"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders", "{{orderId}}"]
         }
       }
     },
     {
       "name": "Create Order",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const id = pm.response.json().id;",
+              "    pm.collectionVariables.set('orderId', id);",
+              "    console.log('orderId saved: ' + id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "POST",
         "header": [
@@ -66,13 +70,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/orders",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders"]
         }
       }
     },
@@ -92,19 +91,27 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/orders/{{orderId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders",
-            "{{orderId}}"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders", "{{orderId}}"]
         }
       }
     },
     {
-      "name": "Request Payment",
+      "name": "Request Payment (async → 202)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 202 Accepted', () => pm.response.to.have.status(202));",
+              "pm.test('Order status is PAYMENT_REQUESTED', () => {",
+              "    pm.expect(pm.response.json().status).to.eql('PAYMENT_REQUESTED');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "POST",
         "header": [
@@ -119,17 +126,40 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/orders/{{orderId}}/payment",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders",
-            "{{orderId}}",
-            "payment"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders", "{{orderId}}", "payment"]
         }
-      }
+      },
+      "response": [
+        {
+          "name": "202 Accepted — payment request sent to RabbitMQ",
+          "status": "Accepted",
+          "code": 202,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"id\": 1,\n  \"customerName\": \"Ivan Petrenko\",\n  \"productName\": \"Laptop\",\n  \"quantity\": 1,\n  \"totalPrice\": 45000.00,\n  \"status\": \"PAYMENT_REQUESTED\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Order By Id (check payment result)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders/{{orderId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders", "{{orderId}}"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — status PAID after RabbitMQ processing",
+          "status": "OK",
+          "code": 200,
+          "header": [{"key": "Content-Type", "value": "application/json"}],
+          "body": "{\n  \"id\": 1,\n  \"customerName\": \"Ivan Petrenko\",\n  \"productName\": \"Laptop\",\n  \"quantity\": 1,\n  \"totalPrice\": 45000.00,\n  \"status\": \"PAID\"\n}"
+        }
+      ]
     },
     {
       "name": "Delete Order",
@@ -138,14 +168,8 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders/{{orderId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "orders",
-            "{{orderId}}"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "orders", "{{orderId}}"]
         }
       }
     }
